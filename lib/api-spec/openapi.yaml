@@ -1,0 +1,172 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: AI Photo Studio API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: photo
+    description: Photo editing and generation
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /edit:
+    post:
+      operationId: editPhoto
+      tags: [photo]
+      summary: Edit a photo using AI
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, prompt, mode]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                mask:
+                  type: string
+                  format: binary
+                prompt:
+                  type: string
+                mode:
+                  type: string
+                  enum: [edit, portrait, scene, beauty, object]
+                quality:
+                  type: string
+                  enum: [fast, high]
+      responses:
+        "200":
+          description: Edited image URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /generate:
+    post:
+      operationId: generateImage
+      tags: [photo]
+      summary: Generate an image from text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                aspect_ratio:
+                  type: string
+                  enum: ["1:1", "9:16", "16:9", "4:5", "3:4"]
+                style:
+                  type: string
+                quality:
+                  type: string
+                  enum: [fast, high]
+      responses:
+        "200":
+          description: Generated image URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /video:
+    post:
+      operationId: generateVideo
+      tags: [photo]
+      summary: Generate a video from an image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, prompt]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                prompt:
+                  type: string
+      responses:
+        "200":
+          description: Generated video URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+    MediaResponse:
+      type: object
+      properties:
+        imageUrl:
+          type: string
+        videoUrl:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
